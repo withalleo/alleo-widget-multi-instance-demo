@@ -1,0 +1,79 @@
+{
+   "root": true,
+   "ignorePatterns": [
+      //"projects/**/*"
+   ],
+   "overrides": [
+      {
+         "plugins": ["prettier","unused-imports"],
+         "parser": "@typescript-eslint/parser",
+         "files": [
+            "*.ts"
+         ],
+         "parserOptions": {
+            "project": [
+               "tsconfig.json"
+            ],
+            "ecmaVersion": 2015,
+            "sourceType": "module",
+            "createDefaultProgram": true
+         },
+         "extends": [
+            "plugin:prettier/recommended",
+            "plugin:@typescript-eslint/recommended"
+         ],
+         "rules": {
+            //"indent": ["warn", 4],
+            "no-var": "error",
+            "prefer-const": "error",
+            "no-underscore-dangle": 0,
+            "no-fallthrough": 0,
+            //"@typescript-eslint/indent": ["warn", 3],
+            "@typescript-eslint/no-misused-new": "error",
+            "@typescript-eslint/no-non-null-assertion": "error",
+            "@typescript-eslint/no-unused-expressions": "error",
+            "@typescript-eslint/prefer-function-type": "error",
+            "@typescript-eslint/no-namespace": "warn",
+            "@typescript-eslint/no-empty-function": "warn",
+            "@typescript-eslint/ban-ts-comment": "warn",
+            "@typescript-eslint/quotes": "off", //handled by prettier
+            "no-unused-vars": "off", // or "@typescript-eslint/no-unused-vars": "off",
+            "unused-imports/no-unused-imports": "error",
+            "unused-imports/no-unused-vars": [
+               "warn"
+            ],
+            "@typescript-eslint/no-var-requires": 0,
+            "@typescript-eslint/explicit-module-boundary-types": 0,
+            "@typescript-eslint/member-ordering": 0,
+            "@typescript-eslint/naming-convention": [
+               "error",
+               {
+                  "selector": "enumMember",
+                  "format": [
+                     "PascalCase"
+                  ]
+               }
+            ],
+            "no-shadow": 0,
+            "prettier/prettier": "warn",
+            "prefer-arrow/prefer-arrow-functions": 0,
+            "semi": [
+               "warn",
+               "never"
+            ]
+         }
+      },
+      {
+         "plugins": ["prettier"],
+         "files": [
+            "*.html"
+         ],
+         "extends": [
+            "plugin:prettier/recommended"
+         ],
+         "rules": {
+            "prettier/prettier": "warn"
+         }
+      }
+   ]
+}

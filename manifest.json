@@ -1,0 +1,18 @@
+{
+	"name": "Multi Instance Demo",
+	"author": "Alleo",
+	"authorUrl": "https://www.withalleo.com",
+	"description": "",
+	"iconUrl": "./assets/icon.png",
+	"version": "1.0.1",
+	"width": 400,
+	"height": 300,
+	"thumbnails": [],
+	"entrypoints": [
+		{
+			"range": "^1.0.0",
+			"apiVersion": 1,
+			"entrypoint": "./index.html"
+		}
+	]
+}
