@@ -17,8 +17,6 @@ The `index.html` file is the HTML template for the widget.
 
 The `manifest.json` file contains the widget metadata. This is used by the Alleo platform to display the widget in the widget library.
 
-The `lib` folder contains the Alleo Widget Library.
-
 The `public/assets` folder contains the icon, preview video and other library elements. It can also contain a widgetAssets folder, which will be copied to the dist folder when building the widget, and it's contents can be referenced with the AssetHelper utility.
 
 The `AlleoMultiWidget` class defines an Alleo widget that has multiple instances on a board. It also contains the logic to communicate with other instances of the widget on the board.

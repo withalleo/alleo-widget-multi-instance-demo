@@ -1,12 +1,15 @@
 {
 	"name": "alleo-widget-multi-instance-demo",
 	"private": true,
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"type": "module",
 	"scripts": {
 		"build": "tsc && cross-env-shell \"npx vite build --mode $MODE\" && node copy-manifest.js",
 		"build-prod": "cross-env MODE=production npm run build",
 		"build-dev": "cross-env MODE=development npm run build"
+	},
+	"dependencies": {
+		"@withalleo/alleo-widget": "^1.0.12"
 	},
 	"devDependencies": {
 		"@ngx-formly/core": "^6.1.7",

@@ -11,19 +11,20 @@
 		"esModuleInterop": true,
 		"lib": ["esnext", "dom"],
 		"skipLibCheck": true,
-		"noEmit": true,
-		"paths": {
-			"alleo/service": [
-				"./alleo/service.d.ts"
-			],
-			"alleo": ["./alleo/widget.d.ts"],
-			"alleoWidgetUtils": ["./lib/alleoWidgetUtils.ts"]
-		}
+		"noEmit": true
 	},
 	"include": [
-		"./alleo/alleo.d.ts",
+		"./node_modules/@withalleo/alleo-widget/dist/alleo.d.ts",
+		"./node_modules/@withalleo/alleo-widget/dist/widget.d.ts",
+			"./node_modules/@withalleo/alleo-widget/dist/alleoWidgetUtils.ts",
 		"src/**/*.ts",
 		"src/**/*.d.ts",
-		"./lib/alleoWidgetUtils.ts"
-	]
+	],
+	"paths": {
+		"alleo/service": [
+			"./node_modules/@withalleo/alleo-widget/dist/service.d.ts"
+		],
+		"alleo": ["./node_modules/@withalleo/alleo-widget/dist/widget.d.ts"],
+		"alleoWidgetUtils": ["./node_modules/@withalleo/alleo-widget/dist/alleoWidgetUtils.ts"]
+	}
 }

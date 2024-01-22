@@ -1,4 +1,4 @@
-import { AlleoWidget, BoardObjectHelper, ExposeActionHelper, RealIBoardObject } from 'alleoWidgetUtils'
+import { AlleoWidget, BoardObjectHelper, ExposeActionHelper, RealIBoardObject } from '@withalleo/alleo-widget'
 import { Optional } from 'utility-types'
 
 export type Role = 'manager' | 'side-1' | 'side-2'

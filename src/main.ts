@@ -1,4 +1,4 @@
-import { AnalyticsHelper, AssetHelper, ResizeHelper } from 'alleoWidgetUtils'
+import { AnalyticsHelper, AssetHelper, ResizeHelper } from '@withalleo/alleo-widget'
 import { ManagerSelectorSettingsDialogHelper } from './ManagerSelectorSettingsDialogHelper'
 import { AlleoMultiWidget, Message, ObjectId, Role } from './AlleoMultiWidget'
 
