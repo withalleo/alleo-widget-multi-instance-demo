@@ -1,4 +1,4 @@
-import { AnalyticsHelper, AssetHelper, ResizeHelper } from '@withalleo/alleo-widget'
+import { AnalyticsHelper, AssetHelper, DefaultColors, ResizeHelper } from '@withalleo/alleo-widget'
 import { ManagerSelectorSettingsDialogHelper } from './ManagerSelectorSettingsDialogHelper'
 import { AlleoMultiWidget, Message, ObjectId, Role } from './AlleoMultiWidget'
 
@@ -6,6 +6,7 @@ import { AlleoMultiWidget, Message, ObjectId, Role } from './AlleoMultiWidget'
 // these are available via the this.shared object within the widget
 const multiInstanceDemoWidgetDefaultSharedVariables = {
     'role': <Role>'manager',
+    'color': <string>DefaultColors.primary,
     'managerObjectId': <ObjectId | undefined>undefined,
     'side1ObjectId': <ObjectId | undefined>undefined,
     'side2ObjectId': <ObjectId | undefined>undefined,
@@ -16,7 +17,7 @@ const multiInstanceDemoWidgetDefaultSharedVariables = {
 class MultiInstanceDemoWidget extends AlleoMultiWidget<typeof multiInstanceDemoWidgetDefaultSharedVariables> {
     // initialize the widget when the page loads
     constructor() {
-        super(multiInstanceDemoWidgetDefaultSharedVariables)
+        super(multiInstanceDemoWidgetDefaultSharedVariables, true)
 
         // define the settings dialog. Angular Formly will be used to show the settings dialog,
         // the saved values will be stored in the widget's shared variables
@@ -41,8 +42,7 @@ class MultiInstanceDemoWidget extends AlleoMultiWidget<typeof multiInstanceDemoW
                 {
                     key: 'managerObjectId',
                     type: 'select',
-                    defaultValue: this.shared.managerObjectId,
-                    // NOTE: in ManagerSelectorSettingsDialogHelper we set up a system that will automatically populate this dropdown with all available manager widgets on the board
+                    defaultValue: this.shared.managerObjectId, // NOTE: in ManagerSelectorSettingsDialogHelper we set up a system that will automatically populate this dropdown with all available manager widgets on the board
                     props: {
                         label: 'Manager',
                     },
@@ -73,12 +73,14 @@ class MultiInstanceDemoWidget extends AlleoMultiWidget<typeof multiInstanceDemoW
         // if we just added the widget to the board, let's open the settings dialog
         if (haptic.creation) settings.openSettingsDialog()
 
+        haptic.getFieldChanged$('color').subscribe(() => this.setThisWidgetColor(this.shared.color))
+        this.setThisWidgetColor(this.shared.color)
+        // Note: this adds a color picker to the widget bar. It also provides a hook between this.shared.color and --widget-background-color
         // COMMON SAMPLES
 
         // this.dom is the root element of the widget. It is a div element.
 
         // you can use the this.domSelect() function to select a dom element inside your widget (á la querySelector)
-
 
         // if the role shared variable changes, let's do something... it is very practical, since the shared variable might be changes in an other browser.
         // This way we can make status consistent between browsers.
@@ -147,9 +149,13 @@ class MultiInstanceDemoWidget extends AlleoMultiWidget<typeof multiInstanceDemoW
             return color
         }
         const color = getRandomColor()
+        this.setColorForAllWidgets(color)
+    }
 
-        // let's set the color locally
-        this.setThisWidgetColor(color)
+    // sets a specific color for all connected widgets
+    public setColorForAllWidgets(color: string) {
+        // let's set the color for this.
+        this.shared.color = color
         // the manager instance should notify the sides.
         // the sides should notify the manager instance.
         if (this.shared.role === 'manager') {
@@ -180,7 +186,7 @@ class MultiInstanceDemoWidget extends AlleoMultiWidget<typeof multiInstanceDemoW
         // this debug message will be visible in the console only in dev, and insert a prefix, otherwise the same as console.log.
         AnalyticsHelper.debug('Received message', this.shared.role, message)
         if (!message?.payload?.color) throw new Error('There was no color in the message')
-        this.setThisWidgetColor(message.payload.color)
+        this.shared.color = message.payload.color
         if (this.shared.role === 'manager') {
             if (message?.sender === 'side-1') {
                 this.sendMessage({
