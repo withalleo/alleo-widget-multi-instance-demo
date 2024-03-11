@@ -8,6 +8,7 @@ export interface Message extends Record<string, any> {
     sender: Role
     target: Role
     payload: any
+    id?: string
 }
 
 const alleoMultiWidgetDefaultSharedVariables = {
@@ -21,16 +22,16 @@ export class AlleoMultiWidget<
     SharedVariableStructure extends typeof alleoMultiWidgetDefaultSharedVariables = typeof alleoMultiWidgetDefaultSharedVariables,
 > extends AlleoWidget<SharedVariableStructure> {
     // initialize the widget when the page loads
-    private interval: NodeJS.Timeout
+    private processedMessageIds: string[] = []
 
-    constructor(defaultSharedVariables: Partial<SharedVariableStructure> = {}) {
+    constructor(defaultSharedVariables: Partial<SharedVariableStructure> = {}, loadLastMessageOnInit: boolean = false) {
         super(defaultSharedVariables)
 
         // initialize messaging between widgets
         ExposeActionHelper.exposeActions([
             {
                 name: 'receiveMessage',
-                action: (message: Message) => this.onMessage(message),
+                action: (message: Message) => this.onIncomingMessage(message),
             },
             {
                 name: 'getRole',
@@ -62,12 +63,16 @@ export class AlleoMultiWidget<
         haptic.getFieldChanged$('managerObjectId').subscribe(() => this.connectToManager())
         haptic.getFieldChanged$('role').subscribe(() => this.connectToManager())
 
-        haptic.widgetDestroyed$.subscribe(() => clearInterval(this.interval))
+        haptic.syncMessage$.subscribe((message) => this.onIncomingBroadcastMessage(message.data as Message))
+        if (loadLastMessageOnInit) this.onIncomingBroadcastMessage(haptic.getLastSyncMessage() as Message)
     }
 
     // Sends a message
-    protected sendMessage(message: Optional<Message, 'sender'>): any {
+    protected sendMessage(message: Optional<Message, 'sender'>): void {
         message.sender = this.shared.role
+        message.id = haptic.utils.uuidv4()
+        haptic.logService.debug('FraudChallengeWidget', 'Sending message', message)
+        this.sendBroadcastMessage(<Message>message)
         const getTargetId = (role: Role): ObjectId | undefined => {
             switch (role) {
                 case 'manager':
@@ -81,19 +86,17 @@ export class AlleoMultiWidget<
             }
         }
         const targetId = getTargetId(message.target)
-        if (!targetId) {
-            haptic.logService.error('Could not find target widget')
-            return
-        }
+        if (!targetId) return
         const target: RealIBoardObject = BoardObjectHelper.getBoardObjectById(targetId)
-        if (!target?.obj?.data?.entryPoint?.startsWith(haptic.config.entryPoint.replace('manifest.json', '').replace('index.html', ''))) {
-            haptic.logService.error('Could not find target widget')
+        if (!target?.obj?.data?.entryPoint?.startsWith(haptic.config.entryPoint.replace('manifest.json', '').replace('index.html', '')))
+            return
+        try {
+            const remoteFunction: (message: Message) => any = ExposeActionHelper.getExposedFunction(target, 'receiveMessage')
+            if (!remoteFunction) return
+            remoteFunction(message as Message)
+        } catch (e) {
             return
         }
-        const remoteFunction: (message: Message) => any = ExposeActionHelper.getExposedFunction(target, 'receiveMessage')
-        const remoteReturn = remoteFunction(message as Message)
-        haptic.logService.debug('FraudChallengeWidget', 'Sent message', message, remoteReturn)
-        return remoteReturn
     }
 
     // Called when a message is received
@@ -105,6 +108,7 @@ export class AlleoMultiWidget<
         if (this.shared.role === 'manager') return
         if (!this.shared.managerObjectId) return
         let connected: boolean = false
+        let interval: NodeJS.Timeout
         while (true) {
             const manager: RealIBoardObject = BoardObjectHelper.getBoardObjectById(this.shared.managerObjectId)
             if (
@@ -121,17 +125,39 @@ export class AlleoMultiWidget<
             if (connected) {
                 haptic.logService.debug('FraudChallengeWidget', 'Connected to manager', this.shared.role, this.shared.managerObjectId)
                 if (initial && this.shared.role !== 'manager') {
-                    if (this.interval) clearInterval(this.interval)
-                    this.interval = setInterval(() => {
+                    if (interval) clearInterval(interval)
+                    interval = setInterval(() => {
                         ;(ExposeActionHelper.getExposedFunction(manager, 'attach') as (role: Role, widgetId: ObjectId) => boolean)?.(
                             this.shared.role,
                             haptic.widgetId,
                         )
                     }, 5000)
+                    haptic.widgetDestroyed$.subscribe(() => {
+                        if (interval) clearInterval(interval)
+                    })
                 }
                 return
             }
             await haptic.utils.sleep(333)
         }
+    }
+
+    // handles an incoming broadcast message
+    private onIncomingBroadcastMessage(message: Message): void {
+        if (message?.target !== this.shared.role) return
+        this.onIncomingMessage(message)
+    }
+
+    // sends a broadcast message
+    private sendBroadcastMessage(message: Message): void {
+        haptic.sendSyncMessage(message)
+    }
+
+    // processes an incoming message. triggers callback
+    private onIncomingMessage(message: Message) {
+        if (message.id && this.processedMessageIds.includes(message.id)) return
+        this.processedMessageIds.push(message.id)
+        haptic.logService.debug('FraudChallengeWidget', 'Incoming message', message)
+        this.onMessage(message)
     }
 }

@@ -1,5 +1,11 @@
-import { BoardFabricObjectType, ExposeActionHelper, FormlyDialogSettings, RealIBoardObject, SettingsDialogHelper  } from '@withalleo/alleo-widget'
-import { FormlySelectOption } from '@ngx-formly/core/select'
+import {
+    BoardFabricObjectType,
+    ExposeActionHelper,
+    FormlyDialogSettings,
+    RealIBoardObject,
+    SettingsDialogHelper,
+} from '@withalleo/alleo-widget'
+import { FormlySelectOption } from '@ngx-formly/core/select' // A Settings dialog variant that supports a dropdown for selecting a manager widget
 
 // A Settings dialog variant that supports a dropdown for selecting a manager widget
 export class ManagerSelectorSettingsDialogHelper extends SettingsDialogHelper {
@@ -23,15 +29,19 @@ export class ManagerSelectorSettingsDialogHelper extends SettingsDialogHelper {
         }
 
         const manifestUrl: string = haptic.config.entryPoint.replace('manifest.json', '').replace('index.html', '')
-        const possibleObjects: RealIBoardObject[] = (haptic.board.objects
-            .getByType(BoardFabricObjectType.Widget) as RealIBoardObject[])
-            .filter((widget ) => {
-                haptic.logService.debug('FraudChallengeWidget', 'Checking widget', widget)
-                if (!widget?.id || widget.id === haptic.widgetId) return false
-                if (!widget.obj?.data?.entryPoint?.startsWith(manifestUrl)) return false
+        const possibleObjects: RealIBoardObject[] = (
+            haptic.board.objects.getByType(BoardFabricObjectType.Widget) as RealIBoardObject[]
+        ).filter((widget) => {
+            haptic.logService.debug('FraudChallengeWidget', 'Checking widget', widget)
+            if (!widget?.id || widget.id === haptic.widgetId) return false
+            if (!widget.obj?.data?.entryPoint?.startsWith(manifestUrl)) return false
+            try {
                 if (ExposeActionHelper.getExposedFunction(widget, 'getRole')?.() !== 'manager') return false
-                return true
-            })
+            } catch (e) {
+                return false
+            }
+            return true
+        })
         let res: FormlySelectOption[] = []
         possibleObjects.forEach((s) => {
             res.push({
