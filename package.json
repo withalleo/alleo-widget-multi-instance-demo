@@ -1,7 +1,7 @@
 {
 	"name": "alleo-widget-multi-instance-demo",
 	"private": true,
-	"version": "1.0.2",
+	"version": "1.0.3",
 	"type": "module",
 	"scripts": {
 		"build": "tsc && cross-env-shell \"npx vite build --mode $MODE\" && node copy-manifest.js",
